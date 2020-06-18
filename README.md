@@ -59,6 +59,7 @@ Those events will contain the latest state of the privacy request data. When a v
   id: "72236cca-c0ee-4c43-8e10-d90737557a66",
   type: "WebForm",
   acknowledged: "false",
+  verified: "false",
   extended: "false",
   completed: "false",
   deadline: "2020-04-28",
@@ -102,7 +103,12 @@ Here is an example of a privacy_request.updated for a voicemail request:
   type: "Voicemail",
   acknowledged: "false",
   extended: "false",
+  verified: "false",
   completed: "true",
+  tell_me: "true",
+  opt_me_out: "false",
+  send_me: "true",
+  delete_me: "false"
   deadline: "2019-11-05",
   created_at: "2019-09-21 16:31:11 UTC",
   updated_at: "2020-03-15 20:48:05 UTC",
@@ -146,6 +152,15 @@ extended | Boolean, e.g: "false" represent if the privacy request was extended.
 deadline | Date, eg: "2019-11-05", calculated based on the extennded field, and created_at
 created_at | Timestamp, the time at which we received this request
 updated_at | Timestamp, the last time this object was updated.
+
+If the type is Voicemail, you will have 4 more fields. 
+Key | Description
+------------ | -------------
+tell_me | Boolean, "true" if you categorized the request as "Tell me"
+delete_me | Boolean, "true" you categorized the request as "Delete me"
+opt_me_out | Boolean, "true" you categorized the request as "Opt me out"
+send_me | Boolean, "true" you categorized the request as "Send me"
+
 
 # Service code #
 
@@ -194,4 +209,6 @@ remote_ip:  | String, The IP address of the requester
 You have setup your webhook after you received a couple request, and you are receiving privacy_request.updated events without their corresponding privacy_request.created. I recommend you correct those requests manually, or simply start recording the privacy requests into your system after the ones in transit are done. If you need us to send webhooks of all the previous privacy requests, let us know.
 
 Sometimes, we can send a privacy_request.updated soon after it was received due to the mp3 being available, and the transcription being available. It could happen that it makes it in before the privacy_request.received. The simplest solution is to create the privacy request record in your system when receiving privacy_request.received. And update the fields based on the timestamp of the privacy_request.updated. If you do receive a privacy_request.updated before a privacy_request.received, you can just throw a specific error in your system, PrivacyRequestNotFound, and we will automatically retry that event in 30 minutes if we received anything else than a 200. It should not happen often, but if it does you may either have a locking strategy on a parent record like a service code record, use upsert based on latest timestamp, or write out those failed privacy_request.updated event and have a job that will retry them on your own system a few minutes later hoping you have received the privacy_request.received by then.
+
+Reach out to julian@privacytollfree.com if you need to discuss your automation.
 
